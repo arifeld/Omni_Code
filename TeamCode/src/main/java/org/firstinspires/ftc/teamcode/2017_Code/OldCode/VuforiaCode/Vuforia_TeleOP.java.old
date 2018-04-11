@@ -1,0 +1,71 @@
+package org.firstinspires.ftc.teamcode.VuforiaCode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
+/**
+ * Created by Ari on 01-06-17.
+ * Credit to gearsincorg for sample code. You can find his original sample here: https://github.com/gearsincorg/FTCVuforiaDemo
+ *
+ * This is the OpMode that combines the other two files.
+ *
+ * TO-DO: Add a gyro for stabilising and better alignment.
+ */
+@TeleOp(name="VuforiaTeleOP", group="Testing")
+public class Vuforia_TeleOP extends LinearOpMode {
+    // 400-150=250
+
+    // Declare OpMode members.
+    Vuforia_OmniDrive robot = new Vuforia_OmniDrive();
+    Vuforia_Navigation nav = new Vuforia_Navigation();
+    final double TARGET_DISTANCE = 100 + nav.CAMERA_FORWARD_DISPLACEMENT; // Set the number to the distance you want the CAMERA to be from the target
+
+
+    @Override
+    public void runOpMode(){
+
+        // Init the robot and vuforia.
+        robot.initDrive(this);
+        nav.initVuforia(this, robot);
+
+        // Activate Vuforia (this does take a few seconds.)
+        nav.activateTracking();
+
+        // Wait for the game to start.
+        while (!isStarted()){
+            // Display some telemetry.
+            telemetry.addData("> ", "INIT completed. Ready to start.");
+
+            // Display any Nav Targets while we wait for the match to start.
+            nav.targetsAreVisible();
+            nav.addNavTelemetry();
+            telemetry.update();
+        }
+
+        // Run until the end of the match.
+        while (opModeIsActive()){
+            telemetry.addData(">", "Press the Left Bumper to track target." );
+
+            // Determine if we should go autonomous or self-driving.
+            if (nav.targetsAreVisible() && gamepad1.left_bumper) {
+                // Calculate automatic target approach
+                nav.cruiseControl(TARGET_DISTANCE);
+
+            } else {
+                // Drive the robot using the joysticks
+                robot.manualDrive();
+            }
+
+            // Build telemetry messages with Navigation Information;
+            nav.addNavTelemetry();
+
+            //  Move the robot according to the pre-determined axis motions
+            robot.moveRobot();
+            telemetry.update();
+        }
+
+        telemetry.addData("> ", "Shutdown successful.");
+        telemetry.update();
+        }
+    }
+

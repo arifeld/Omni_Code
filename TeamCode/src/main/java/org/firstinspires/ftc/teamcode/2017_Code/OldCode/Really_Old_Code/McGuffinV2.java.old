@@ -1,0 +1,149 @@
+package org.firstinspires.ftc.teamcode.OldCode.Really_Old_Code;
+import android.app.Activity;
+import android.graphics.Color;
+import android.view.View;
+
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
+
+
+/**
+ * Created by taldonde on 8/4/17.
+ * What is this meme even. -arifeld
+ */
+// NOT IN USE. DISABLED.
+@Disabled
+@Autonomous
+public class McGuffinV2 extends LinearOpMode{
+
+    //declare variables
+
+    private ElapsedTime runtime = new ElapsedTime();
+    HardwarePushbot robot   = new HardwarePushbot();
+    ColorSensor colorSensor;
+
+    static final double COUNTS_PER_MOTOR_REV = 1440;
+    static final double DRIVE_GEAR_REDUCTION = 1.0;
+    static final double WHEEL_DIAMETER_INCHES = 5*0.393701;
+    static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
+    static final double DRIVE_SPEED = .6;
+    static final double TURN_SPEED = .5;
+    static final double cmToInch = 0.393701;
+
+
+    public void runOpMode() throws InterruptedException {
+
+        //init motors
+        DcMotor motorRight = hardwareMap.dcMotor.get("motorRight");
+        DcMotor motorLeft = hardwareMap.dcMotor.get("motorLeft");
+        motorLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        motorRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        motorLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        telemetry.addData("Status", "Resetting Encoders");
+        telemetry.update();
+
+        // get a reference to the RelativeLayout so we can change the background
+        // color of the Robot Controller app to match the hue detected by the RGB sensor.
+        final View relativeLayout = ((Activity) hardwareMap.appContext).findViewById(com.qualcomm.ftcrobotcontroller.R.id.RelativeLayout);
+
+        //get a reference to the colour sensor object
+        colorSensor = hardwareMap.colorSensor.get("colour_sensor");
+
+        waitForStart();
+
+        motorLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        //measurements are wrong, still have to test them
+        //move foward to shoot
+
+        encoderDrive(DRIVE_SPEED, cmToInch * 5, cmToInch * 5, 2); //move foward 5cm for 2 seconds
+
+        //shoot here
+
+
+        //turn here - the program will have to be changed for each team
+        //drive towards line
+        encoderDrive(TURN_SPEED, cmToInch * 2, cmToInch * 2, 1); //turn 2cm for 1 sec
+        encoderDrive(DRIVE_SPEED, cmToInch*20, cmToInch*20, 1);
+
+        //implement masking tape scan here
+        while(colorSensor.green() != 255)
+        {
+            motorLeft.setPower(.1);
+            motorRight.setPower(.1);
+        }
+        motorLeft.setPower(.0);
+        motorRight.setPower(.0);
+
+        //implement vuforia here
+        
+
+    }
+    public void encoderDrive(double speed,
+                             double leftInches, double rightInches,
+                             double timeoutS) {
+        int newLeftTarget;
+        int newRightTarget;
+
+        // Ensure that the opmode is still active
+        if (opModeIsActive()) {
+
+            // Determine new target position, and pass to motor controller
+            newLeftTarget = robot.leftMotor.getCurrentPosition() + (int)(leftInches * COUNTS_PER_INCH);
+            newRightTarget = robot.rightMotor.getCurrentPosition() + (int)(rightInches * COUNTS_PER_INCH);
+            robot.leftMotor.setTargetPosition(newLeftTarget);
+            robot.rightMotor.setTargetPosition(newRightTarget);
+
+            // Turn On RUN_TO_POSITION
+            robot.leftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            robot.rightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            // reset the timeout time and start motion.
+            runtime.reset();
+            robot.leftMotor.setPower(Math.abs(speed));
+            robot.rightMotor.setPower(Math.abs(speed));
+
+            // keep looping while we are still active, and there is time left, and both motors are running.
+            while (opModeIsActive() &&
+                    (runtime.seconds() < timeoutS) &&
+                    (robot.leftMotor.isBusy() && robot.rightMotor.isBusy())) {
+
+                // Display it for the driver.
+                telemetry.addData("Path1",  "Running to %7d :%7d", newLeftTarget,  newRightTarget);
+                telemetry.addData("Path2",  "Running at %7d :%7d",
+                        robot.leftMotor.getCurrentPosition(),
+                        robot.rightMotor.getCurrentPosition());
+                telemetry.update();
+            }
+
+            // Stop all motion;
+            robot.leftMotor.setPower(0);
+            robot.rightMotor.setPower(0);
+
+            // Turn off RUN_TO_POSITION
+            robot.leftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            robot.rightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+

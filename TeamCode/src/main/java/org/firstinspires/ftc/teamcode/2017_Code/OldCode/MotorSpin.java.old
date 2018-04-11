@@ -1,0 +1,100 @@
+package org.firstinspires.ftc.teamcode.OldCode;
+
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import org.firstinspires.ftc.teamcode.Libraries.MyOpMode;
+
+/**
+ * Created by Ari on 24-05-17.
+ * A simple script that spins one motor (rightMotor) at a configurable speed.
+ * The speed can be controlled by the gamepad with the following controls.
+ * Right Bumper: Increases speed by 10% (0.1)
+ * Left Bumper: Decreases speed by 10% (0.1)
+ * Dpad-Up: Increases speed by 1% (0.01)
+ * Dpad-Down: Decreases speed by 1% (0.01)
+ *
+ * Telemetry will display between 0-100, whilst the actual motor speed ranges from 0-1.
+ */
+@TeleOp(name="Motor Speed Test", group="TeleOP Testing")
+public class MotorSpin extends MyOpMode {
+    private boolean selected = false;
+    private float motorPower; // Define our required variable.
+
+
+    @Override
+    public void init(){
+        telemetry.addData("STATUS:", "Ready to start.");
+        telemetry.update();
+    }
+
+    @Override
+    public void init_loop(){
+        if (!selected) {
+            selectHardwareMap();
+            if (gamepad1.a){
+                selected=true;
+            }
+        }
+
+
+    }
+
+    @Override
+    public void start(){
+
+    }
+
+    @Override
+    public void loop(){
+        /*
+        rightMotor = hardwareMap.dcMotor.get("rightMotor");
+        leftMotor = hardwareMap.dcMotor.get("leftMotor");
+
+        setModeDual(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        setModeDual(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        telemetry.addData("STATUS: ", "Dual Motors Mapped");
+        // Setup complete, add telemetry and waitForStart()
+        telemetry.addData(">", "Ready to start.");
+        telemetry.update();
+
+        waitForStart();
+        /*For every while loop, you MUST have opModeIsActive().
+         *If you do not include this, YOU WILL ERROR when you try to stop the program.
+         *
+         *@param motorPower    (Speed that the motor will spin at. MIN: 0. MAX: 1)
+         * motorPower is always increased by *.**f. The 'f' is required to make it a float, otherwise it will error out. */
+            if (motorPower <= 0.9 & gamepad1.right_bumper){
+                motorPower = motorPower + 0.1f; // 10% increase.
+            }
+            else if (motorPower <= 0.99 & gamepad1.dpad_up){
+                motorPower = motorPower + 0.01f; // 1% increase.
+            }
+            else if (motorPower >= 0.1 & gamepad1.left_bumper){
+                motorPower = motorPower - 0.1f; // 10% decrease.
+            }
+            else if (motorPower >= 0.01 & gamepad1.dpad_down){
+                motorPower = motorPower - 0.01f; // 1% decrease.
+            }
+
+            moveDual(motorPower, motorPower);
+
+            // Add telemetry, multiply motorPower by 100 so we get a number between 0 - 100.
+            // "Motor Power" and "Motor Speed" should always be the same thing.
+            telemetry.addData("Motor Power: ", motorPower * 100);
+            telemetry.addData("Encoder Test:", rightMotor.getCurrentPosition());
+            telemetry.update();
+        }
+
+
+    @Override
+    public void stop(){
+        telemetry.addData("STATUS:", "Shut down successfully.");
+        telemetry.update();
+    }
+}
+

@@ -1,0 +1,29 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+
+/**
+ * Created by Ari on 31-08-17.
+ */
+
+@TeleOp(name="Memes")
+public class MotorSpinAlt extends LinearOpMode {
+
+    @Override
+    public void runOpMode() throws InterruptedException {
+        waitForStart();
+        while (opModeIsActive()) {
+            DcMotor motorRight = hardwareMap.dcMotor.get("motorRight");
+            DcMotor motorLeft = hardwareMap.dcMotor.get("motorLeft");
+
+            motorRight.setDirection(DcMotorSimple.Direction.REVERSE);
+            motorRight.setPower(1);
+            motorLeft.setPower(1);
+        }
+
+
+    }
+}

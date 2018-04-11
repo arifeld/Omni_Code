@@ -1,0 +1,261 @@
+
+package org.firstinspires.ftc.teamcode.OldCode.Really_Old_Code;
+
+import com.qualcomm.robotcore.eventloop.opmode.*;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.vuforia.HINT;
+import com.vuforia.Vuforia;
+
+import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
+import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
+import org.firstinspires.ftc.teamcode.R;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Created by Ari on 07-04-17.
+ */
+// NOT IN USE. @DISABLED
+@Disabled
+@Autonomous(name="Vuforia Fix", group="WIP")
+public class VuforiaFix extends LinearOpMode {
+
+    OpenGLMatrix lastLocation = null;
+    VuforiaLocalizer vuforia;
+
+    @Override
+    public void runOpMode() throws InterruptedException {
+        // Init our two motors. hardwareMap.dcMotor.get("motorname") inits it.
+        DcMotor motorRight = hardwareMap.dcMotor.get("motorRight");
+        motorRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        motorRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        DcMotor motorLeft = hardwareMap.dcMotor.get("motorLeft");
+        motorLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        float mmBotWidth = 24891414;            // ... or whatever is right for your robot
+        float mmFTCFieldWidth = 352524234 ;   // the FTC field is ~11'10" center-to-center of the glass panels
+        // Default setup stuff.
+        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(R.id.cameraMonitorViewId);
+        parameters.vuforiaLicenseKey = "Ac2ZR6T/////AAAAGdIyuKX5yU1WhsL+sBQlI9QhbPH4vz8oCEvf34gr7LGyWt0mzfDJahzBJldwHZZZ/SfMij+6i19yz3xkhQ03sTVqAcrlFwAxPLfU6SWVGub0SKiCPzVVB53l+RruAGNUPRL2jDjBg5LccPCWnFBW5R9ISdxzOo1diqV0uMjIlT46GNuPBXIW56uWkOhtZQLk/dm/0f7TRdsoyFoeE/2E4NIzLH7W/tDfm/q3dlwedS1lVdLXPQ/3dQHDOxf++hECRwuSSOPRfoxKlxr1e31nomJFQN2i/KegOBWV4FmaQpKPx9hj33GNeOHW/I4ode7KeEJaUEijd8HQUncF9dwry7YSoCGF7WiYnAPOvM+eZ17s";
+        parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
+        this.vuforia = ClassFactory.createVuforiaLocalizer(parameters);
+        Vuforia.setHint(HINT.HINT_MAX_SIMULTANEOUS_IMAGE_TARGETS, 4);
+
+        // Load the data sets.
+        VuforiaTrackables beacons = this.vuforia.loadTrackablesFromAsset("FTC_2016-17");
+
+        // Wheels
+        VuforiaTrackable wheels = beacons.get(0);
+        wheels.setName("Wheels");
+
+        // Tools
+        VuforiaTrackable tools = beacons.get(1);
+        tools.setName("Tools");
+
+        // Legos
+        VuforiaTrackable legos = beacons.get(2);
+        legos.setName("Legos");
+
+        // Gears
+        VuforiaTrackable gears = beacons.get(3);
+        gears.setName("Gears");
+
+        // For convenience, gather together all the trackable objects in a array.
+        List<VuforiaTrackable> allTrackables = new ArrayList<VuforiaTrackable>();
+        allTrackables.addAll(beacons);
+        OpenGLMatrix phoneLocationOnRobot = OpenGLMatrix
+                .translation(mmBotWidth / 2, 0, 0)
+                .multiplied(Orientation.getRotationMatrix(
+                        AxesReference.EXTRINSIC, AxesOrder.YZY,
+                        AngleUnit.DEGREES, 0, 0, 0));
+
+        /** Wait for the game to begin */
+        telemetry.addData(">", "Press Play to start tracking");
+        telemetry.update();
+
+        waitForStart();
+        beacons.activate();
+        VuforiaTrackableDefaultListener wheelstrack = (VuforiaTrackableDefaultListener) beacons.get(0).getListener();
+        telemetry.addData("Wheels Visible?: ", wheelstrack.isVisible());
+        telemetry.addData("GetPos", wheelstrack.getPose());
+
+        motorLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        //Move forward
+        motorLeft.setPower(0.2);
+        motorRight.setPower(0.2);
+
+        //If no image detected, keep moving
+        while (opModeIsActive() && wheelstrack.getPose() == null){
+            idle(); // idle resets the while loop
+        }
+        //When images detected stop
+        motorLeft.setPower(0);
+        motorRight.setPower(0);
+
+        /** Start tracking the data sets we care about. */
+
+
+
+
+        // Analyse beacons here!
+
+
+        VectorF angles = anglesFromTarget(wheelstrack);
+
+        VectorF trans = navOffWall(wheelstrack.getPose().getTranslation(), Math.toDegrees(angles.get(0)) - 90, new VectorF(500, 0, 0));
+
+//        //If the robot is not in line to the image
+//        if (trans.get(0) > 0)
+//        {
+//
+//            motorLeft.setPower(0.02);
+//            motorRight.setPower(-0.02);
+//        }
+//        else if (trans.get(0) < 0 )
+//        {
+//            motorLeft.setPower(-0.02);
+//            motorRight.setPower(0.02);
+//        }
+        //Image is already detected.
+        //Drive forward until central axis of the robot matches with the picture.
+        //Then Run turn functions
+
+        //
+        //Forward until axis match function
+        //
+
+
+        //
+        //The turn function
+        //
+        do {
+            //If the robot is not in line to the image
+            if (trans.get(0) > 0) {
+
+                motorLeft.setPower(0.02);
+                motorRight.setPower(-0.02);
+            } else
+            {
+                motorLeft.setPower(-0.02);
+                motorRight.setPower(0.02);
+            }
+        }
+        while (trans.get(0) != 0);
+
+//        while(opModeIsActive() && wheelstrack.isVisible() && Math.abs(trans.get(0)) > 30) {
+//            trans = navOffWall(wheelstrack.getPose().getTranslation(), Math.toDegrees(angles.get(0)) - 90, new VectorF(500, 0, 0));
+//            idle();
+//        }
+        telemetry.addData("Right: ", motorRight.getPower());
+        telemetry.update();
+
+
+        // vvv You may need to add a + (in mm) to the end of the math.hypot depending on where the centre of turning is on from the robot compared to the phone.
+        // Ticks per rotation: AndyMark 20's = 560, AndyMark 40's = 1120, we use 757
+        motorLeft.setTargetPosition((int)(motorLeft.getCurrentPosition() + ((Math.hypot(trans.get(0), trans.get(2)) /* +  */ ) /  /* wheel circumfrance */ 285.884 *  /* ticks per rotation*/ 757)));
+        motorRight.setTargetPosition((int)(motorRight.getCurrentPosition() + ((Math.hypot(trans.get(0), trans.get(2)) /* +  */ ) /  /* wheel circumfrance */ 285.884 *  /* ticks per rotation*/ 757)));
+
+        motorLeft.setPower(0.3);
+        motorRight.setPower(0.3);
+
+        while (opModeIsActive() && motorLeft.isBusy() && motorRight.isBusy()){
+            idle();
+        }
+
+        motorLeft.setPower(0);
+        motorRight.setPower(0);
+
+        motorLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        while (opModeIsActive() && (wheelstrack.getPose() == null || Math.abs(wheelstrack.getPose().getTranslation().get(0)) > 10 )){
+            if(wheelstrack.getPose() != null){
+                if(wheelstrack.getPose().getTranslation().get(0) > 0){
+                    motorLeft.setPower(-0.3);
+                    motorRight.setPower(0.3);
+                }
+                else{
+                    motorLeft.setPower(0.3);
+                    motorRight.setPower(-0.3);
+                }
+            }
+            else {
+                motorLeft.setPower(-0.3);
+                motorRight.setPower(0.3);
+            }
+        }
+
+        motorLeft.setPower(0);
+        motorRight.setPower(0);
+
+
+        // This is telemetry.. probably don't need this in the final program (we don't)
+        while (opModeIsActive()) {
+            for (VuforiaTrackable beac:beacons) {
+                OpenGLMatrix pose = ((VuforiaTrackableDefaultListener) beac.getListener()).getPose();
+                if (pose != null) { // Display a bit of telemetry.
+                    VectorF translation = pose.getTranslation();
+                    telemetry.addData(beac.getName() + "-Translation", translation);
+                    double degreesToTurn = Math.toDegrees(Math.atan2(translation.get(1), translation.get(2)));
+                    telemetry.addData(beac.getName() + "-Degrees", degreesToTurn);
+                }
+            }
+            telemetry.update();
+        }
+        while (opModeIsActive()) {
+
+            for (VuforiaTrackable trackable : allTrackables) {
+                /**
+                 * getUpdatedRobotLocation() will return null if no new information is available since
+                 * the last time that call was made, or if the trackable is not currently visible.
+                 * getRobotLocation() will return null if the trackable is not currently visible.
+                 */
+                telemetry.addData(trackable.getName(), ((VuforiaTrackableDefaultListener) trackable.getListener()).isVisible() ? "Visible" : "Not Visible");    //
+
+                OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener) trackable.getListener()).getUpdatedRobotLocation();
+                if (robotLocationTransform != null) {
+                    lastLocation = robotLocationTransform;
+                }
+            }
+            telemetry.update();
+        }
+
+
+
+
+
+
+    }
+    public VectorF navOffWall(VectorF trans, double robotAngle, VectorF offWall){ return new VectorF((float) (trans.get(0) - offWall.get(0) * Math.sin(Math.toRadians(robotAngle)) - offWall.get(2) * Math.cos(Math.toRadians(robotAngle))), trans.get(1), (float) (trans.get(2) + offWall.get(0) * Math.cos(Math.toRadians(robotAngle)) - offWall.get(2) * Math.sin(Math.toRadians(robotAngle))));
+    }
+
+    public VectorF anglesFromTarget(VuforiaTrackableDefaultListener image){ float [] data = image.getRawPose().getData(); float [] [] rotation = {{data[0], data[1]}, {data[4], data[5], data[6]}, {data[8], data[9], data[10]}}; double thetaX = Math.atan2(rotation[2][1], rotation[2][2]); double thetaY = Math.atan2(-rotation[2][0], Math.sqrt(rotation[2][1] * rotation[2][1] + rotation[2][2] * rotation[2][2])); double thetaZ = Math.atan2(rotation[1][0], rotation[0][0]); return new VectorF((float)thetaX, (float)thetaY, (float)thetaZ);
+    }
+
+
+    /*
+     * A simple utility that extracts positioning information from a transformation matrix
+     * and formats it in a form palatable to a human being.
+     */
+
+    String format(OpenGLMatrix transformationMatrix) {
+        return transformationMatrix.formatAsTransform();
+    }
+
+
+}
