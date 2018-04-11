@@ -1,0 +1,79 @@
+package org.firstinspires.ftc.teamcode.OldCode.TeleOP;
+
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
+import org.firstinspires.ftc.teamcode.Libraries.Holonomic_Control;
+import org.firstinspires.ftc.teamcode.Libraries.MyOpMode;
+
+/**
+ * Created by Ari on 28-07-17.
+ */
+
+@TeleOp(name = "Field_Orientated", group = "Testing")
+public class FieldOrientated extends MyOpMode {
+
+    // Declare our opMode members:
+    Holonomic_Control robot = new Holonomic_Control();
+
+    // Declare our variables
+    static double dAxial = 0;
+    static double dLateral = 0;
+    static double dYaw = 0;
+    static double gyroYaw = 0;
+    static double adjustedAxial = 0;
+    static double adjustedLateral = 0;
+
+
+    @Override
+    public void init() {
+        // Init the motors and gyro.
+        robot.initDrive(this);
+        robot.setMoveRobot(0, 0, 0);
+        initGyro();
+
+        telemetry.addData("STATUS: ", "Waiting for start.");
+        telemetry.update();
+
+    }
+
+    @Override
+    public void start() {
+        telemetry.clearAll();
+        // updateGyro; - We don't call this here as it is called straight away in loop()
+        resetGyro();
+
+    }
+
+    @Override
+    public void loop() {
+        // First, make sure we update the gyro value.
+        updateGyro();
+
+        // Secondly, take the values of the gamepad.
+        dAxial = -gamepad1.left_stick_y;
+        dLateral = gamepad1.left_stick_x;
+        dYaw = -gamepad1.right_stick_x;
+
+        // Grab the first angle of the gyro, then use some "c00l skillz" to find the desired values.
+        gyroYaw = angles.firstAngle;
+        adjustedAxial = ((dAxial * Math.cos(gyroYaw)) - (dLateral * Math.sin(gyroYaw)));
+        adjustedLateral = ((dAxial * Math.sin(gyroYaw)) - (dLateral * Math.cos(gyroYaw)));
+
+        // Push the values to Holonomic_Control
+        robot.setMoveRobot(adjustedAxial, adjustedLateral, dYaw);
+
+        // Add telemetry
+        robot.composeHolonomicTelemetry();
+        composeGyroTelemetry();
+        telemetry.update();
+
+    }
+
+    @Override
+    public void stop() {
+        telemetry.addData("STATUS: ", "Shut down successfully.");
+        telemetry.update();
+    }
+
+}
+

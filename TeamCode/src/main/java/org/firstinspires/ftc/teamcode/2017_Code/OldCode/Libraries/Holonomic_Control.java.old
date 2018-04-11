@@ -1,0 +1,155 @@
+package org.firstinspires.ftc.teamcode.OldCode.Libraries;
+
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.util.Range;
+
+/**
+ * Created by Ari on 28-07-17.
+ */
+
+public class Holonomic_Control {
+
+    // Private members.
+    private OpMode myOpMode;
+
+    // This is really the best way of defining motors, we should probably do this more often.
+    private DcMotor topLeft     = null;
+    private DcMotor topRight    = null;
+    private DcMotor bottomLeft  = null;
+    private DcMotor bottomRight = null;
+
+    private double driveAxial   = 0; // +ve is forward.
+    private double driveLateral = 0; // +ve is right.
+    private double driveYaw     = 0; // +ve is CCW.
+
+    // Begin code by creating a constructor. Used to create an object from this class in Vuforia_TeleOp.
+    public Holonomic_Control(){
+    }
+
+    /**
+     * Init the motors, set them up.
+     */
+    public void initDrive(OpMode opMode){
+
+        // Save reference to Hardware map.
+        myOpMode = opMode;
+
+        // Define and init the motors.
+        topLeft     = myOpMode.hardwareMap.get(DcMotor.class, "topLeft");
+        topRight    = myOpMode.hardwareMap.get(DcMotor.class, "topRight");
+        bottomLeft  = myOpMode.hardwareMap.get(DcMotor.class, "bottomLeft");
+        bottomRight = myOpMode.hardwareMap.get(DcMotor.class, "bottomRight");
+
+        // Set the direction of all the motors. We DON'T want any motors to be reversed.
+        // Positive inputs rotate counter-clockwise.
+        topLeft.setDirection(DcMotorSimple.Direction.FORWARD); // I guess we can use DcMotorSimple here.
+        topRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        bottomLeft.setDirection(DcMotorSimple.Direction.FORWARD);
+        bottomRight.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        // Assuming we hve encoders installed, use RUN_USING_ENCODER
+        // Also, this is actually a void. Just makes things quicker.
+        setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+
+        // Stop all robot motion by setting each axis value to zero.
+        setMoveRobot( 0,0,0 );
+    }
+
+    public void manualDrive()  {
+        // Just copy-pasting this, will edit later.
+        // In this mode the Left stick moves the robot fwd & back, and Right & Left.
+        // The Right stick rotates CCW and CW.
+
+        //  (note: The joystick goes negative when pushed forwards, so negate it)
+        setAxial(-myOpMode.gamepad1.left_stick_y);
+        setLateral(myOpMode.gamepad1.left_stick_x);
+        setYaw(-myOpMode.gamepad1.right_stick_x);
+    }
+
+    /**
+     *  Set the speed levels to motors based on axes requests.
+     *  In the sample code, this is called moveRobot. But because I don't want a headache, I rename it here.
+     *  Also, turns out you can name void's as the same thing multiple times by having different params
+     */
+    public void setMoveRobot(double axial, double lateral, double yaw){
+        setAxial(axial);
+        setLateral(lateral);
+        setYaw(yaw);
+        moveRobot();
+    }
+    public void moveRobot(){
+        // Calculate the required motor speeds to achieve axis motions.
+        // Remember, motors spin CCW.
+        // If you are confused about this, ask me. It's easier to explain visually.
+        // To-do list: Add fudge factor, preferably using a Gyro.
+
+        double topLeftPower = driveYaw - driveAxial -driveLateral; // Top left motor.
+        double topRightPower = driveYaw + driveAxial - driveLateral; // Top right motor.
+        double bottomLeftPower = driveYaw - driveAxial + driveLateral; // Bottom left motor.
+        double bottomRightPower = driveYaw + driveAxial + driveLateral; // Bottom right power.
+
+
+        // Normalise all the motor speeds to no values exceed 100% (which is really 1.0)
+        // The /= compound operator means divide the left value by the right, and assign that number into the left value.
+        // In Vuforia_Navigation, all motors are multiplied by 0.00**, making the value be between 1 and -1.
+
+        double max = Math.max(Math.abs(topLeftPower), Math.abs(topRightPower)); // See which value is larger: topLeft or topRight.
+        max = Math.max(max, Math.abs(bottomLeftPower)); // See which value is larger: The above max or bottomLeftPower
+        max = Math.max(max, Math.abs(bottomRightPower)); // See which value is larger: The above max or bottomRightPower
+        if (max > 1.0){ // If the max value is greater than 1, then for each variable, divide it by the "max" and set it to that value.
+            topLeftPower /= max;
+            topRightPower /= max;
+            bottomLeftPower /= max;
+            bottomRightPower /= max;
+        }
+
+        // Set motor power levels. Will require changes.
+        topLeft.setPower(topLeftPower);
+        topRight.setPower(topRightPower);
+        bottomLeft.setPower(bottomLeftPower);
+        bottomRight.setPower(bottomRightPower);
+
+        // Display telemetry. Requires changing.
+        // myOpMode.telemetry.addData("Axes  ", "A[%+5.2f], L[%+5.2f], Y[%+5.2f]", driveAxial, driveLateral, driveYaw);
+        // myOpMode.telemetry.addData("Wheels", "TL[%+5.2f], TR[%+5.2f], BL[%+5.2f], BR[%+5.2f]", topLeftPower, topRightPower, bottomLeftPower, bottomRightPower);
+
+    }
+
+    // Create the functions that we use to set variables. Also, sets the range that the variable can be set to.
+    public void setAxial(double axial){
+        driveAxial = Range.clip(axial, -1, 1);}
+
+    public void setLateral(double lateral){
+        driveLateral = Range.clip(lateral, -1, 1); }
+
+    public void setYaw(double yaw){
+        driveYaw = Range.clip(yaw, -1, 1); }
+
+    /**
+     * Sets all the motors to the same mode.
+     */
+    public void setMode(DcMotor.RunMode mode ){
+        topLeft.setMode(mode);
+        topRight.setMode(mode);
+        bottomLeft.setMode(mode);
+        bottomRight.setMode(mode);
+    }
+
+    /**
+     * Compose telemetry.
+     */
+    public void composeHolonomicTelemetry() {
+        myOpMode.telemetry.addData("MOTOR: ", "Power Values");
+        myOpMode.telemetry.addLine()
+                .addData("tL: ", topLeft.getPower())
+                .addData("tR: ", topRight.getPower())
+                .addData("bL: ", bottomLeft.getPower())
+                .addData("bR: ", bottomRight.getPower());
+    }
+}
