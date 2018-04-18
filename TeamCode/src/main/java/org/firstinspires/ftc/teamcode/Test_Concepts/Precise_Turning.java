@@ -1,11 +1,13 @@
 package org.firstinspires.ftc.teamcode.Test_Concepts;
 
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
-
+@TeleOp(name = "Precise Turning Test", group = "Testing")
 public class Precise_Turning extends Temp_Library {
 
     private double k_value = 0.008;
@@ -65,14 +67,12 @@ public class Precise_Turning extends Temp_Library {
                 double yaw = k_value * turnPower; // why does lambda not exist? I guess this does the same though.
                 setMoveRobot(0, 0, yaw);
 
-                // Haven't actually programmed in a stop method..
-
                 if (-3 < turnPower && turnPower < 3) {
                     setMoveRobot(0, 0, 0);
                     inProgress = false;
                 }
             } else if (desiredAngle < 0) {
-                double turnPower = desiredAngle + angles.firstAngle; // THIS LINE IS PROBABLY WRONG. BUT IM TIRED SO ILL FIX IT LATER.
+                double turnPower = desiredAngle + angles.firstAngle; // THIS LINE IS PROBABLY WRONG. BUT IM TIRED SO I'LL FIX IT LATER.
                 double yaw = k_value * turnPower;
                 setMoveRobot(0, 0, yaw);
 
