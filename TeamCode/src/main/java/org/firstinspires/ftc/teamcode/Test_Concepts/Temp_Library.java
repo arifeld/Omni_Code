@@ -5,8 +5,10 @@ import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.PIDCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
@@ -20,10 +22,12 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 public abstract class Temp_Library extends OpMode {
 
     // Define the base motors. "null" is used to clear any potential cache's of motors.
+    // We use DcMotorEx because we want to change the PID coefficients.
     public static DcMotor topLeft = null;
     public static DcMotor topRight = null;
     public static DcMotor backLeft = null;
     public static DcMotor backRight = null;
+    public static Orientation angles = null;
 
     // Gyro stuff.
     public static BNO055IMU imu = null;
@@ -147,9 +151,29 @@ public abstract class Temp_Library extends OpMode {
     }
 
     // updateGyro must be called every update loop.
-
-/*    public void updateGyro() {
+    public void updateGyro() {
         angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
     }
-*/
+
+
+    public PIDCoefficients getPID(DcMotorEx motor){
+        return motor.getPIDCoefficients(motor.getMode());
+    }
+
+    public void setPID(double p, double i, double d){
+        // We need to cast our motors to DcMotorEx.
+        // This is done by using:
+        // DcMotorEx newMotor = (DcMotorEx)oldMotor;
+
+        DcMotorEx topLeftEx = (DcMotorEx)topLeft;
+        DcMotorEx topRightEx = (DcMotorEx)topRight;
+        DcMotorEx backLeftEx = (DcMotorEx)backLeft;
+        DcMotorEx backRightEx = (DcMotorEx)backRight;
+
+        PIDCoefficients coeff = new PIDCoefficients(p, i, d);
+        topLeftEx.setPIDCoefficients(topLeft.getMode(), coeff );
+        topRightEx.setPIDCoefficients(topRight.getMode(), coeff);
+        backLeftEx.setPIDCoefficients(backLeft.getMode(), coeff);
+        backRightEx.setPIDCoefficients(backRight.getMode(), coeff);
+    }
 }
