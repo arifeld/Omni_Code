@@ -23,13 +23,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 public abstract class Temp_Library extends OpMode {
 
     // Define the base motors. "null" is used to clear any potential cache's of motors.
-<<<<<<< HEAD
 
     public static DcMotorEx topLeft = null;
     public static DcMotorEx topRight = null;
     public static DcMotorEx backLeft = null;
     public static DcMotorEx backRight = null;
->>>>>>> 9d5a0be5e0c0dbda29de2e03f6f1ea63b70b59c4
+
+    public static Orientation angles;
 
     // Gyro stuff.
     public static BNO055IMU imu = null;
@@ -45,10 +45,11 @@ public abstract class Temp_Library extends OpMode {
     // Init the base, and reset all the motors.
     public void initBase() {
         telemetry.addData("STATUS: ", "Initialising Base.");
-        topLeft = hardwareMap.dcMotor.get("topLeft");
-        topRight = hardwareMap.dcMotor.get("topRight");
-        backLeft = hardwareMap.dcMotor.get("backLeft");
-        backRight = hardwareMap.dcMotor.get("backRight");
+        // Yay, converting types, because having hardwareMap.dcMotorEx would be too easy.
+        topLeft = (DcMotorEx) hardwareMap.dcMotor.get("topLeft");
+        topRight = (DcMotorEx) hardwareMap.dcMotor.get("topRight");
+        backLeft = (DcMotorEx) hardwareMap.dcMotor.get("backLeft");
+        backRight = (DcMotorEx) hardwareMap.dcMotor.get("backRight");
 
         topLeft.setDirection(DcMotorSimple.Direction.FORWARD);
         topRight.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -167,15 +168,11 @@ public abstract class Temp_Library extends OpMode {
         // This is done by using:
         // DcMotorEx newMotor = (DcMotorEx)oldMotor;
 
-        DcMotorEx topLeftEx = (DcMotorEx)topLeft;
-        DcMotorEx topRightEx = (DcMotorEx)topRight;
-        DcMotorEx backLeftEx = (DcMotorEx)backLeft;
-        DcMotorEx backRightEx = (DcMotorEx)backRight;
 
         PIDCoefficients coeff = new PIDCoefficients(p, i, d);
-        topLeftEx.setPIDCoefficients(topLeft.getMode(), coeff );
-        topRightEx.setPIDCoefficients(topRight.getMode(), coeff);
-        backLeftEx.setPIDCoefficients(backLeft.getMode(), coeff);
-        backRightEx.setPIDCoefficients(backRight.getMode(), coeff);
+        topLeft.setPIDCoefficients(topLeft.getMode(), coeff );
+        topRight.setPIDCoefficients(topRight.getMode(), coeff);
+        backLeft.setPIDCoefficients(backLeft.getMode(), coeff);
+        backRight.setPIDCoefficients(backRight.getMode(), coeff);
     }
 }

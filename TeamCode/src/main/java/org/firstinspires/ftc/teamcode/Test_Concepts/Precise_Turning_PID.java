@@ -10,13 +10,14 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 
-@TeleOp(name = "Precise Turning Test", group = "Testing")
-public class Precise_Turning extends Temp_Library {
+@TeleOp(name = "Turning PID", group = "Testing")
+public class Precise_Turning_PID extends Temp_Library {
 
-    private double k_value = 0.008;
+    private double kP = 0.69;
     private Orientation angles;
     private boolean inProgress = false;
     private float desiredAngle = 0;
+    private DcMotorEx motorEx = (DcMotorEx)topLeft;
 
     @Override
     public void init(){
@@ -24,6 +25,8 @@ public class Precise_Turning extends Temp_Library {
         initBase();
         initGyro();
         telemetry.update();
+        PIDCoefficients currentPID = getPID(motorEx);
+        setPID(kP, currentPID.i, currentPID.d);
     }
 
     public void start(){
@@ -32,7 +35,7 @@ public class Precise_Turning extends Temp_Library {
     }
 
     public void loop(){
-        telemetry.addData("Current K value", k_value);
+        telemetry.addData("Current K value", kP);
         updateGyro();
 
         if (!inProgress) {
@@ -56,22 +59,23 @@ public class Precise_Turning extends Temp_Library {
 
         }
 
-        DcMotorEx motorEx = (DcMotorEx)topLeft;
         PIDCoefficients currentPID = getPID(motorEx);
 
-        double p = currentPID.p;
+        double kP = currentPID.p;
         double i = currentPID.i;
         double d = currentPID.d;
 
 
         if (gamepad1.dpad_up) {
-            setPID(p+0.01, i, d);
+            kP += 0.01;
+            setPID(kP, i, d);
         }
         if (gamepad1.dpad_down) {
-            setPID(p-0.01, i, d);
+            kP -= 0.01;
+            setPID(kP, i, d);
         }
 
-        telemetry.addData("P Value", p);
+        telemetry.addData("P Value", kP);
         telemetry.addData("In Progress?", inProgress);
         telemetry.update();
 

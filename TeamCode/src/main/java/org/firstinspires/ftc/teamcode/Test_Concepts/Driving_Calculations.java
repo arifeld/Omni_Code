@@ -35,13 +35,13 @@ public class Driving_Calculations extends Temp_Library {
 
     public void loop(){
         if (gamepad1.a && !currentlyRunning) {
-            currentlyRunning = true;
+            currentlyRunning = true; // Tell us to go forward.
         }
 
         if (currentlyRunning){
-            time.reset();
-            while (currentlyRunning && (time.time() <= 1) ){
-                setMoveRobot(1,0,0);
+            time.reset(); // Reset our timer.
+            while (currentlyRunning && (time.time() <= 1) ){ // Whilst (hopefully) the timer is less than / equal to 1.
+                setMoveRobot(1,0,0); // Go forward.
                 telemetry.addData("Time", time.time());
                 telemetry.addData("topLeftE", topLeft.getCurrentPosition());
                 telemetry.addData("topRightE", topRight.getCurrentPosition());
