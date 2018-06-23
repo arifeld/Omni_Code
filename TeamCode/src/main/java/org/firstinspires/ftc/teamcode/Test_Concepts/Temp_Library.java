@@ -4,6 +4,7 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -22,12 +23,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 public abstract class Temp_Library extends OpMode {
 
     // Define the base motors. "null" is used to clear any potential cache's of motors.
-    // We use DcMotorEx because we want to change the PID coefficients.
-    public static DcMotor topLeft = null;
-    public static DcMotor topRight = null;
-    public static DcMotor backLeft = null;
-    public static DcMotor backRight = null;
-    public static Orientation angles = null;
+<<<<<<< HEAD
+
+    public static DcMotorEx topLeft = null;
+    public static DcMotorEx topRight = null;
+    public static DcMotorEx backLeft = null;
+    public static DcMotorEx backRight = null;
+>>>>>>> 9d5a0be5e0c0dbda29de2e03f6f1ea63b70b59c4
 
     // Gyro stuff.
     public static BNO055IMU imu = null;
